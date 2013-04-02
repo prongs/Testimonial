@@ -99,7 +99,7 @@ class HomeHandler(BaseHandler):
     def get(self):
         # user = json.loads(""" {"locale": "en_US", "session_expires": ["5183801"], "id": "100000191247312", "first_name": "Rajat", "link": "http://www.facebook.com/rajat.khandelwal.iitd", "access_token": "AAAE9MLcInQkBAF3zLcnEIIZBwUhxaAFZB9ywV89HVTsgdCRBZAHSXEndEI9kAPLx7trzXX5ah3QyIS1izBaggtMaZB0mM6VRYMHcvopaZBAZDZD", "picture": {"data": {"url": "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash3/173107_100000191247312_1509830112_q.jpg", "is_silhouette": false}}, "last_name": "Khandelwal", "name": "Rajat Khandelwal"} """)
         user = self.get_current_user()
-        self.render('index.html', notifications=True, user=user)
+        self.render('index.html', notifications=True, user=user, facebook_app_id = self.settings['facebook_app_id'])
 
 
 class PostModule(UIModule):
