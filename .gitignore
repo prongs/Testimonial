@@ -36,3 +36,4 @@ lib
 *.pyc
 .DS_Store
 .svn
+.env
