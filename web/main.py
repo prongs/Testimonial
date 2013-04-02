@@ -65,7 +65,7 @@ class MainHandler(tornado.web.RequestHandler):
 # RAMMING SPEEEEEEED!
 def main():
     # print settings.DATABASES
-    execute_from_command_line(["syncdb", "syncdb"])
+    # execute_from_command_line(["syncdb", "syncdb"])
     tornado.options.parse_command_line()
     print options.facebook_app_id, options.facebook_secret
     http_server = tornado.httpserver.HTTPServer(Application())
