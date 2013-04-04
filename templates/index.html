@@ -41,6 +41,9 @@
         display: inline-block !important;
         padding-left: 1px !important;
       }
+      .friend_row{
+        cursor:pointer;
+      }
     </style>
     <script type="text/javascript">
       var dojoConfig=(function(){
@@ -61,22 +64,14 @@
       require([
           "dijit/dijit",
           "dojo/parser",
-          "dijit/layout/BorderContainer",
-          "dijit/layout/ContentPane",
-          "dijit/layout/TabContainer",
-          "dijit/layout/AccordionContainer",
-          "dijit/Editor",
-          "dijit/_editor/plugins/FontChoice",
-          "dijit/_editor/plugins/TextColor",
-          "dijit/_editor/plugins/LinkDialog",
-          "dijit/_editor/plugins/FullScreen",
+          "testimonial/MainViewWidget",
         ]);
     </script>
   </head>
 
   <body class="claro">
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
+    <div id="top_navbar" class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
           <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -128,32 +123,7 @@
       </div>
     </div>
 
-    <div data-dojo-type="dijit.layout.BorderContainer" design="sidebar" persist="false" gutters="true" style="min-width: 1em; min-height: 1px; z-index: 0; width: 100%; height: 754px;">
-      <div data-dojo-type="dijit.layout.ContentPane" extractContent="false" preventCache="false" preload="false" refreshOnShow="false" region="left" splitter="true" maxSize="Infinity" doLayout="false" style="width:20%;">
-        <input type="text" data-dojo-type="dijit.form.TextBox" style="width: 307.109375px;"></input>
-        <div id="friends_list_div"></div>
-      </div>
-      <div data-dojo-type="dijit.layout.ContentPane" extractContent="false" preventCache="false" preload="false" refreshOnShow="false" region="center" splitter="false" maxSize="Infinity" doLayout="false">
-        <span data-dojo-type="dijit.layout.TabContainer" style="min-width: 1em; min-height: 1em; width: 100%; height: 100%;" controllerWidget="dijit.layout.TabController">
-          <div data-dojo-type="dijit.layout.ContentPane" title="Welcome" extractContent="false" preventCache="false" preload="false" refreshOnShow="false" selected="true" closable="false" doLayout="false">
-            Use the left pane to open a tab for a friend. From there you can write a testimonial for them and read what they wrote for you!
-          </div>
-          <div data-dojo-type="dijit.layout.ContentPane" title="friend name" extractContent="false" preventCache="false" preload="false" refreshOnShow="false" doLayout="true" selected="true" closable="false">
-            <span data-dojo-type="dijit.layout.AccordionContainer" style="min-width: 1em; min-height: 1em; width: 100%; height: 100%;">
-              <div data-dojo-type="dijit.layout.ContentPane" title="Write testimonial for friend" doLayout="false">
-                <div data-dojo-type="dijit.Editor" id="editor1" data-dojo-props="onChange:function(){console.log('editor1 onChange handler: ' + arguments[0])}, extraPlugins:['foreColor','hiliteColor','fontName', 'fontSize', 'formatBlock', 'createLink', 'unlink', 'insertImage', {name: 'fullscreen', zIndex: 900}]" height=90% style=""></div>
-                <!--
-                dojo.connect(dijit.registry.byNode(editor1.toolbar.containerNode.children[editor1.toolbar.containerNode.children.length-1]), "onChange", function(x){alert('hello')});
-              -->
-              </div>
-              <div data-dojo-type="dijit.layout.ContentPane" title="Read their testimonial for you" doLayout="false">
-              </div>
-            </span>
-          </div>
-        </span>
-      </div>
-    </div>
-
+    <div id="mainWidget_div" data-dojo-type="testimonial.MainViewWidget"></div>
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
@@ -184,14 +154,8 @@
 
               alert("Error!");
           }
-          require(["dojo/ready", "dojo/dom", "dojo/_base/fx", "dojo/on", "dijit/registry", "dojo/_base/array"], function(ready, dom, base_fx, on, registry, array) {
-            ready(function() {
-              // logic that requires that Dojo is fully initialized should go here
-
-              array.forEach(friends_data.data, function(friend){
-                registry.byId("friends_list_div").
-              })
-            });
+          dojo.ready(function(){
+            dijit.registry.byId("mainWidget_div").set_friends_data(friends_data);
           });
         });
       };
@@ -210,14 +174,5 @@
     <script src="/static/js/wysihtml5-0.3.0.min.js"></script>
     <script src="/static/bootstrap/js/bootstrap.min.js"></script>
     <script src="/static/bootstrap/js/bootstrap-wysihtml5.js"></script>
-    <script>
-        require(["dojo/ready", "dojo/dom", "dojo/_base/fx", "dojo/on", "dijit/registry"], function(ready, dom, base_fx, on, registry) {
-          ready(function() {
-            // logic that requires that Dojo is fully initialized should go here
-
-          });
-        });
-    </script>
-
   </body>
 </html>
