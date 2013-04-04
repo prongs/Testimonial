@@ -45,29 +45,7 @@
         cursor:pointer;
       }
     </style>
-    <script type="text/javascript">
-      var dojoConfig=(function(){
-          return {
-              async:true,
-              isDebug:true,
-              parseOnLoad:true,
-              packages:[{
-                  name:"testimonial",
-                  location: location.origin+"/static/dojo/Testimonial"
-              }],
-          };
 
-      })();
-    </script>
-    <script type="text/javascript" src="/static/dojo/1.8.3/dojo/dojo.js"></script>
-    <script type="text/javascript">
-      require([
-          "dijit/dijit",
-          "dojo/parser",
-          "dojo/ready",
-          "testimonial/MainViewWidget",
-        ]);
-    </script>
   </head>
 
   <body class="claro">
@@ -129,6 +107,29 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <div id="fb-root"></div>
+    <script type="text/javascript">
+      var dojoConfig=(function(){
+          return {
+              async:true,
+              isDebug:true,
+              parseOnLoad:true,
+              packages:[{
+                  name:"testimonial",
+                  location: location.origin+"/static/dojo/Testimonial"
+              }],
+          };
+
+      })();
+    </script>
+    <script type="text/javascript" src="/static/dojo/1.8.3/dojo/dojo.js"></script>
+    <script type="text/javascript">
+      require([
+          "dijit/dijit",
+          "dojo/parser",
+          "dojo/ready",
+          "testimonial/MainViewWidget",
+        ]);
+    </script>
     <script src="/static/js/jquery-1.9.1.min.js"></script>
     <script src="/static/js/wysihtml5-0.3.0.min.js"></script>
     <script src="/static/bootstrap/js/bootstrap.min.js"></script>
@@ -155,13 +156,12 @@
             if(response.data) {
                 //TODO : what to do if no. of friends is more than 5000 (pagination by fb)
                 friends_data=response.data;
+                dijit.registry.byId("mainWidget_div").set_friends_data(friends_data);
             } else {
-
                 alert("Error!");
             }
 
           });
-          dijit.registry.byId("mainWidget_div").set_friends_data(friends_data);
         });
       };
       // Load the SDK Asynchronously
