@@ -149,18 +149,27 @@
           cookie     : true,           // enable cookies to allow the server to access the session
           xfbml      : true            // parse page for xfbml or html5 social plugins like login button below
         });
-
         // Put additional init code here
-        dojo.ready(function(){
-          FB.api('/me/friends', function(response) {
-            if(response.data) {
-                //TODO : what to do if no. of friends is more than 5000 (pagination by fb)
-                friends_data=response.data;
-                dijit.registry.byId("mainWidget_div").set_friends_data(friends_data);
-            } else {
-                alert("Error!");
+        require(["dojo/ready", "dojo/dom", "dojo/_base/fx", "dojo/on", "dijit/registry"], function(ready, dom, base_fx, on, registry){
+          FB.login(function(response) {
+            if (response.authResponse)
+            {
+              console.log('Welcome!  Fetching your information.... ');
+              FB.api('/me/friends', function(response) {
+                if(response.data)
+                {
+                  friends_data=response.data;
+                  registry.byId("mainWidget_div").set_friends_data(friends_data);
+                }
+                else
+                {
+                  console.log("Response.data does not exist");
+                }
+              });
+            } else
+            {
+              console.log('User cancelled login or did not fully authorize.');
             }
-
           });
         });
       };
