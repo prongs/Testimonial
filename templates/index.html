@@ -158,7 +158,7 @@
               FB.api('/me/friends', function(response) {
                 if(response.data)
                 {
-                  friends_data=response.data;
+                  friends_data=response;
                   registry.byId("mainWidget_div").set_friends_data(friends_data);
                 }
                 else
@@ -166,7 +166,8 @@
                   console.log("Response.data does not exist");
                 }
               });
-            } else
+            }
+            else
             {
               console.log('User cancelled login or did not fully authorize.');
             }
