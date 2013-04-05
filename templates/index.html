@@ -151,27 +151,17 @@
         });
         // Put additional init code here
         require(["dojo/ready", "dojo/dom", "dojo/_base/fx", "dojo/on", "dijit/registry"], function(ready, dom, base_fx, on, registry){
-          FB.login(function(response) {
-            if (response.authResponse)
-            {
-              console.log('Welcome!  Fetching your information.... ');
-              FB.api('/me/friends', function(response) {
-                if(response.data)
-                {
-                  friends_data=response;
-                  registry.byId("mainWidget_div").set_friends_data(friends_data);
-                }
-                else
-                {
-                  console.log("Response.data does not exist");
-                }
-              });
-            }
-            else
-            {
-              console.log('User cancelled login or did not fully authorize.');
-            }
-          });
+            FB.api('/me/friends', function(response) {
+              if(response.data)
+              {
+                friends_data=response;
+                registry.byId("mainWidget_div").set_friends_data(friends_data);
+              }
+              else
+              {
+                console.log("Response.data does not exist");
+              }
+            });
         });
       };
       // Load the SDK Asynchronously
