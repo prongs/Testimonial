@@ -1,15 +1,15 @@
-define(["dojo/_base/declare","dojo/dom", "dojo/on", "dojo/dom-geometry", "dojo/_base/fx", "dojo/fx", "dojo/_base/array",
+define(["dojo/_base/declare", "dojo/_base/connect", "dojo/dom", "dojo/on", "dojo/dom-geometry", "dojo/_base/fx", "dojo/fx", "dojo/_base/array",
 	"dijit/registry", "dijit/_Widget", "dijit/_TemplatedMixin", "dijit/_WidgetsInTemplateMixin",
 	"dojox/data/JsonRestStore", "dojo/store/Observable", "dijit/tree/ForestStoreModel", "dojo/data/ItemFileReadStore", "dijit/Tree",
-	"dojo/text!./templates/MainViewWidget.html", "dojo/text!./templates/new_tab.html",
+	"dojo/text!./templates/MainViewWidget.html", "dojo/text!./templates/new_tab.html", 'testimonial/SavePlugin',
 	"./TestimonialContentPane", "dijit/layout/ContentPane", "dijit/layout/TabContainer", "dijit/layout/TabController", "dijit/layout/BorderContainer", "dijit/form/TextBox", "dijit/form/Textarea","dijit/layout/AccordionContainer",
 	"dijit/layout/BorderContainer", "dijit/layout/ContentPane", "dijit/layout/TabContainer", "dijit/layout/AccordionContainer", "dijit/Editor", "dijit/_editor/plugins/FontChoice",
     "dijit/_editor/plugins/TextColor", "dijit/_editor/plugins/LinkDialog", "dijit/_editor/plugins/FullScreen"
     ],
-	function(declare, dom, on, domGeom, base_fx, fx, array,
+	function(declare, connect, dom, on, domGeom, base_fx, fx, array,
 		registry, _Widget, _TemplatedMixin, _WidgetsInTemplateMixin,
 		JsonRestStore, Observable, ForestStoreModel, ItemFileReadStore, Tree,
-		template, newTabTemplate, TestimonialContentPane){
+		template, newTabTemplate, TestimonialSavePlugin, TestimonialContentPane){
 		return declare("testimonial.MainViewWidget", [_Widget, _TemplatedMixin, _WidgetsInTemplateMixin], {
 			templateString: template,
 			wipe_out: true,
@@ -21,6 +21,15 @@ define(["dojo/_base/declare","dojo/dom", "dojo/on", "dojo/dom-geometry", "dojo/_
 			postCreate: function(){
 				var self=this;
 				// self.connect(registry.byNode(self.editor.toolbar.containerNode.children[self.editor.toolbar.containerNode.children.length-1]), "onChange", self.toggle_fullscreen);
+				connect.subscribe('dijit.Editor.getPlugin', null, function(obj){
+                    if(obj.plugin)
+                        return;
+                    var name = obj.args.name;
+                    if(name == "testimonial.SavePlugin")
+                    {
+                        obj.plugin = new TestimonialSavePlugin();
+                    }
+                });
 			},
 			toggle_fullscreen: function(){
 				var self=this;
@@ -71,6 +80,7 @@ define(["dojo/_base/declare","dojo/dom", "dojo/on", "dojo/dom-geometry", "dojo/_
 				}
 				var cp = new TestimonialContentPane({
 					title: self.friends_data.data[index].name,
+					friend_id: self.friends_data.data[index].id,
 					closable: true,
 					onClose:function(){
 						conf = confirm("Do you really want to Close this?");

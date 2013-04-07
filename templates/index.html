@@ -15,6 +15,7 @@
     <link href="/static/dojo/1.8.3/dijit/themes/soria/soria.css" rel="stylesheet">
     <link href="/static/dojo/1.8.3/dijit/themes/tundra/tundra.css" rel="stylesheet">
     <link href="/static/dojo/1.8.3/dijit/themes/claro/claro.css" rel="stylesheet">
+    <link href="/static/dojo/1.8.3/dojox/editor/plugins/resources/css/Save.css" rel="stylesheet">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -113,9 +114,14 @@
               async:true,
               isDebug:true,
               parseOnLoad:true,
-              packages:[{
-                  name:"testimonial",
-                  location: location.origin+"/static/dojo/Testimonial"
+              packages:[
+              {
+                name:"testimonial",
+                location: location.origin+"/static/dojo/Testimonial"
+              },
+              {
+                name: "bootstrap",
+                location: location.origin+"/static/dojo/Dojo-Bootstrap"
               }],
           };
 

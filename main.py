@@ -10,15 +10,20 @@ import unicodedata
 from django.core.management import execute_from_command_line
 from tornado.options import define, options
 import handlers
+import motor
 # import and define tornado-y things
 define("port", default=8888, help="run on the given port", type=int)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 import settings
 
+
 define("facebook_app_id", help="your Facebook application API key",
        default=os.environ.get("FACEBOOK_APP_ID"))
 define("facebook_secret", help="your Facebook application secret",
        default=os.environ.get("FACEBOOK_SECRET"))
+
+con = motor.MotorClient(os.getenv('MONGOHQ_URL')).open_sync()
+db = con['testimonial-db']
 
 
 # application settings and handle mapping info
@@ -38,6 +43,7 @@ class Application(tornado.web.Application):
             facebook_secret=options.facebook_secret,
             ui_modules={"Post": PostModule},
             autoescape=None,
+            db=db
         )
         tornado.web.Application.__init__(self, mappings, **tornado_settings)
 
@@ -67,7 +73,6 @@ def main():
     # print settings.DATABASES
     # execute_from_command_line(["syncdb", "syncdb"])
     tornado.options.parse_command_line()
-    print options.facebook_app_id, options.facebook_secret
     http_server = tornado.httpserver.HTTPServer(Application())
     http_server.listen(os.environ.get("PORT", 8888))
 
