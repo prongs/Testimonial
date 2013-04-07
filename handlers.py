@@ -123,6 +123,7 @@ class WriteTestimonialHandler(BaseHandler):
         result = yield motor.Op(self.settings.get('db').testimonials.find_one, {'by': str(by_user), 'for': str(for_user)})
         print result
         self.write({'content': result['content']})
+        self.finish()
 
 
 @url(r'/read/(.*)')
@@ -135,6 +136,7 @@ class ReadTestimonialHandler(BaseHandler):
         result = yield motor.Op(self.settings.get('db').testimonials.find_one, {'by': str(by_user), 'for': str(for_user)})
         print result
         self.write({'content': result['content']})
+        self.finish()
 
 
 class PostModule(UIModule):
