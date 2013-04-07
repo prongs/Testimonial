@@ -11,7 +11,6 @@ define([
                 return declare('testimonial.TestimonialContentPane', [ ContentPane, _TemplatedMixin, _WidgetsInTemplateMixin ], {
                         templateString: template,
                         constructor: function(args){
-                            console.log(args);
                         },
                         postCreate: function(){
                             var self = this;
@@ -30,17 +29,21 @@ define([
                             });
                         },
                         load_write_testimonial: function(response, ioArgs){
+                            var self = this;
                             self.editor.set('value', response.content);
                             self.editor.setDisabled(false);
                         },
                         error_load_write_testimonial: function(error, ioArgs){
+                            var self = this;
                             self.editor.set('value', 'Error Loading Testimonial' + error);
                         },
 
                         load_read_testimonial: function(response, ioArgs){
+                            var self = this;
                             self.read_pane.containerNode.innerHTML = response.content;
                         },
                         error_load_read_testimonial: function(error, ioArgs){
+                            var self = this;
                           self.read_pane.containerNode.innerHTML = error;
                         },
                         getCookie: function(name) {
@@ -58,10 +61,12 @@ define([
                             });
                         },
                         save_xhr_success: function(data, ioArgs){
+                            var self = this;
                             console.log("saved!");
                             console.log(data);
                         },
                         save_xhr_error: function(err, ioArgs){
+                            var self = this;
                             console.log("Error!");
                             console.log(err);
                         }
