@@ -113,7 +113,7 @@ class WriteTestimonialHandler(BaseHandler):
     @gen.engine
     def post(self, for_user):
         by_user = self.get_current_user()['id']
-        yield motor.Op(self.settings.get('db').testimonials.insert, {'by': str(by_user), 'for': str(for_user), 'content': self.get_argument("content", "")})
+        yield motor.Op(self.settings.get('db').testimonials.update, {'by': str(by_user), 'for': str(for_user)}, {"$set": {'content': self.get_argument("content", "")}}, upsert=True)
 
 
 class PostModule(UIModule):
