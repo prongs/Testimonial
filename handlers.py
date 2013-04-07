@@ -115,6 +115,23 @@ class WriteTestimonialHandler(BaseHandler):
         by_user = self.get_current_user()['id']
         yield motor.Op(self.settings.get('db').testimonials.update, {'by': str(by_user), 'for': str(for_user)}, {"$set": {'content': self.get_argument("content", "")}}, upsert=True)
 
+    @authenticated
+    @gen.engine
+    def get(self, for_user):
+        by_user = self.get_current_user()['id']
+        result = yield motor.Op(self.settings.get('db').testimonials.find_one, {'by': str(by_user), 'for': str(for_user)})
+        self.write({'content': result['content']})
+
+
+@url(r'/read/(.*)')
+class ReadTestimonialHandler(BaseHandler):
+    @authenticated
+    @gen.engine
+    def get(self, by_user):
+        for_user = self.get_current_user()['id']
+        result = yield motor.Op(self.settings.get('db').testimonials.find_one, {'by': str(by_user), 'for': str(for_user)})
+        self.write({'content': result['content']})
+
 
 class PostModule(UIModule):
     def render(self, post):

@@ -16,6 +16,32 @@ define([
                         postCreate: function(){
                             var self = this;
                             self.editor.save = lang.hitch(self, "save");
+                            xhr.get({
+                                url: "/write/" + self.friend_id,
+                                handleAs: 'json',
+                                load: lang.hitch(self, "load_write_testimonial"),
+                                error: lang.hitch(self, "error_load_write_testimonial")
+                            });
+                            xhr.get({
+                                url: "/read/" + self.friend_id,
+                                handleAs: 'json',
+                                load: lang.hitch(self, "load_read_testimonial"),
+                                error: lang.hitch(self, "error_load_read_testimonial")
+                            });
+                        },
+                        load_write_testimonial: function(response, ioArgs){
+                            self.editor.set('value', response.content);
+                            self.editor.setDisabled(false);
+                        },
+                        error_load_write_testimonial: function(error, ioArgs){
+                            self.editor.set('value', 'Error Loading Testimonial' + error);
+                        },
+
+                        load_read_testimonial: function(response, ioArgs){
+                            self.read_pane.containerNode.innerHTML = response.content;
+                        },
+                        error_load_read_testimonial: function(error, ioArgs){
+                          self.read_pane.containerNode.innerHTML = error;
                         },
                         getCookie: function(name) {
                             var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
