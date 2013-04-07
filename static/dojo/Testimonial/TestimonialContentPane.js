@@ -40,7 +40,8 @@ define([
 
                         load_read_testimonial: function(response, ioArgs){
                             var self = this;
-                            self.read_pane.containerNode.innerHTML = response.content;
+                            self.read_pane.containerNode.innerHTML = (response.content.length)?response.content:(self.title + " has not written a testimonial for you!");
+
                         },
                         error_load_read_testimonial: function(error, ioArgs){
                             var self = this;
