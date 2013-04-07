@@ -83,7 +83,7 @@ define(["dojo/_base/declare", "dojo/_base/connect", "dojo/dom", "dojo/on", "dojo
 					friend_id: self.friends_data.data[index].id,
 					closable: true,
 					onClose:function(){
-						conf = confirm("Do you really want to Close this?");
+						conf = this.confirm_close();
 						if (conf){
 							self.friends_tabs[index] = null;
 							return true;

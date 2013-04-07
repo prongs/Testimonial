@@ -17,6 +17,7 @@ define([
                         },
                         postCreate: function(){
                             var self = this;
+                            self.saved = true;
                             self.editor.save = lang.hitch(self, "save");
                             xhr.get({
                                 url: "/write/" + self.friend_id,
@@ -88,6 +89,16 @@ define([
                             }
                             self.set('title', self.friend_name + "&nbsp;&nbsp;<sup>*</sup>");
                             self.saved = false;
+                        },
+                        onClose: function(){
+                            alert('onclose!');
+                        },
+                        confirm_close: function(){
+                            var self = this;
+                            if(self.saved)
+                                return confirm("Do you really want to Close this?");
+                            alert('Your testimonial is not saved! Please Save first!');
+                            return false;
                         }
                 });
         }
