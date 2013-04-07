@@ -23,7 +23,7 @@ define("facebook_secret", help="your Facebook application secret",
        default=os.environ.get("FACEBOOK_SECRET"))
 
 con = motor.MotorClient(os.getenv('MONGOHQ_URL')).open_sync()
-db = con['testimonial-db']
+db = con['testimonial_db']
 
 
 # application settings and handle mapping info

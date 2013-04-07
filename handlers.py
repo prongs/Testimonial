@@ -107,13 +107,14 @@ class HomeHandler(BaseHandler):
         self.render('index.html', notifications=True, user=user, facebook_app_id = self.settings['facebook_app_id'])
 
 
-
 @url(r'/write/(.*)')
 class WriteTestimonialHandler(BaseHandler):
     @authenticated
-    def post(self):
-        user = self.get_current_user()
-        print self.arguments
+    @gen.engine
+    def post(self, for_user):
+        by_user = self.get_current_user()['id']
+        yield motor.Op(self.settings.get('db').testimonials.insert, {'by': str(by_user), 'for': str(for_user), 'content': self.get_argument("content", "")})
+
 
 class PostModule(UIModule):
     def render(self, post):
