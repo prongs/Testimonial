@@ -11,6 +11,7 @@ from django.core.management import execute_from_command_line
 from tornado.options import define, options
 import handlers
 import motor
+import pymongo
 # import and define tornado-y things
 define("port", default=8888, help="run on the given port", type=int)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
@@ -24,7 +25,7 @@ define("facebook_secret", help="your Facebook application secret",
 
 con = motor.MotorClient(os.getenv('MONGOHQ_URL')).open_sync()
 db = con.testimonial_db
-db.testimonials.ensureIndex({'by': 1, 'for': 1})
+db['testimonials'].ensure_index([('by', pymongo.ASCENDING), ('for', pymongo.ASCENDING)])
 
 
 # application settings and handle mapping info
