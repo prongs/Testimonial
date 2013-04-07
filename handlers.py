@@ -117,6 +117,7 @@ class WriteTestimonialHandler(BaseHandler):
 
     @authenticated
     @gen.engine
+    @asynchronous
     def get(self, for_user):
         by_user = self.get_current_user()['id']
         result = yield motor.Op(self.settings.get('db').testimonials.find_one, {'by': str(by_user), 'for': str(for_user)})
@@ -128,6 +129,7 @@ class WriteTestimonialHandler(BaseHandler):
 class ReadTestimonialHandler(BaseHandler):
     @authenticated
     @gen.engine
+    @asynchronous
     def get(self, by_user):
         for_user = self.get_current_user()['id']
         result = yield motor.Op(self.settings.get('db').testimonials.find_one, {'by': str(by_user), 'for': str(for_user)})
