@@ -97,7 +97,7 @@ define([
                             var self = this;
                             if(self.saved)
                                 return confirm("Do you really want to Close this?");
-                            alert('Your testimonial is not saved! Please Save first!');
+                            return confirm('Your testimonial is not saved! Pressing OK will discard your changes') && confirm("Do you really want to discard?");
                             return false;
                         }
                 });
