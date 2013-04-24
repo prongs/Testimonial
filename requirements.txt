@@ -8,4 +8,4 @@ mongoengine>=0.7.9
 motor>=0.1
 tornadio2>=0.0.3
 pycurl>=7.19.0
-certifi>=4.2.0
+certifi>=0.0.8
