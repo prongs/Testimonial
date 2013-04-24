@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import os.path
 import os
+import os.path
 import tornado.escape
 import tornado.httpserver
 import tornado.ioloop
@@ -9,9 +9,14 @@ import tornado.web
 import unicodedata
 from django.core.management import execute_from_command_line
 from tornado.options import define, options
+from tornado.httpclient import AsyncHTTPClient
 import handlers
 import motor
 import pymongo
+import pycurl
+import certifi
+
+
 # import and define tornado-y things
 define("port", default=8888, help="run on the given port", type=int)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
@@ -26,6 +31,16 @@ define("facebook_secret", help="your Facebook application secret",
 con = motor.MotorClient(os.getenv('MONGOHQ_URL')).open_sync()
 db = con.testimonial_db
 db['testimonials'].ensure_index([('by', pymongo.ASCENDING), ('for', pymongo.ASCENDING)])
+
+defaults = dict(ca_certs=certifi.where())
+http_proxy = os.environ.get('http_proxy')
+if http_proxy:
+    if http_proxy[:7] == "http://":
+        http_proxy = http_proxy[7:]
+    defaults['proxy_host'], defaults['proxy_port'] = http_proxy.split(":")
+    defaults['proxy_port'] = int(defaults['proxy_port'])
+
+AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient", defaults=defaults)
 
 
 # application settings and handle mapping info
@@ -45,7 +60,9 @@ class Application(tornado.web.Application):
             facebook_secret=options.facebook_secret,
             ui_modules={"Post": PostModule},
             autoescape=None,
-            db=db
+            db=db,
+            proxy_host="10.10.78.22",
+            proxy_port=3128
         )
         tornado.web.Application.__init__(self, mappings, **tornado_settings)
 
