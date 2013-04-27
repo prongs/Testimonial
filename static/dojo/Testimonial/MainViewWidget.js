@@ -1,7 +1,7 @@
 define(["dojo/_base/declare", "dojo/_base/connect", "dojo/dom", "dojo/on", "dojo/dom-geometry", "dojo/_base/fx", "dojo/fx", "dojo/_base/array",
 	"dijit/registry", "dijit/_Widget", "dijit/_TemplatedMixin", "dijit/_WidgetsInTemplateMixin",
 	"dojox/data/JsonRestStore", "dojo/store/Observable", "dijit/tree/ForestStoreModel", "dojo/data/ItemFileReadStore", "dijit/Tree",
-	"dojo/text!./templates/MainViewWidget.html", "dojo/text!./templates/new_tab.html", 'testimonial/SavePlugin',
+	"dojo/text!./templates/MainViewWidget.html", "dojo/text!./templates/new_tab.html", 'testimonial/SavePlugin', 'testimonial/HelpPlugin',
 	"./TestimonialContentPane", "dijit/layout/ContentPane", "dijit/layout/TabContainer", "dijit/layout/TabController", "dijit/layout/BorderContainer", "dijit/form/TextBox", "dijit/form/Textarea","dijit/layout/AccordionContainer",
 	"dijit/layout/BorderContainer", "dijit/layout/ContentPane", "dijit/layout/TabContainer", "dijit/layout/AccordionContainer", "dijit/Editor", "dijit/_editor/plugins/FontChoice",
     "dijit/_editor/plugins/TextColor", "dijit/_editor/plugins/LinkDialog", "dijit/_editor/plugins/FullScreen"
@@ -9,7 +9,7 @@ define(["dojo/_base/declare", "dojo/_base/connect", "dojo/dom", "dojo/on", "dojo
 	function(declare, connect, dom, on, domGeom, base_fx, fx, array,
 		registry, _Widget, _TemplatedMixin, _WidgetsInTemplateMixin,
 		JsonRestStore, Observable, ForestStoreModel, ItemFileReadStore, Tree,
-		template, newTabTemplate, TestimonialSavePlugin, TestimonialContentPane){
+		template, newTabTemplate, TestimonialSavePlugin, TestimonialHelpPlugin, TestimonialContentPane){
 		return declare("testimonial.MainViewWidget", [_Widget, _TemplatedMixin, _WidgetsInTemplateMixin], {
 			templateString: template,
 			wipe_out: true,
@@ -28,6 +28,10 @@ define(["dojo/_base/declare", "dojo/_base/connect", "dojo/dom", "dojo/on", "dojo
                     if(name == "testimonial.SavePlugin")
                     {
                         obj.plugin = new TestimonialSavePlugin();
+                    }
+					else if(name == "testimonial.HelpPlugin")
+                    {
+                        obj.plugin = new TestimonialHelpPlugin();
                     }
                 });
 			},

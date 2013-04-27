@@ -1,0 +1,22 @@
+.HelpPluginIcon{
+	background-image: url(../images/help_icon.png);
+	background-repeat: no-repeat;
+	background-position: center center;
+	width: 18px;
+	height: 18px;
+}
+.notif-background{
+	width:18px;
+	height:14px;
+}
+#num_notif{
+	position: relative;
+	float: right;
+	left: -24px;
+	color: #fff;
+	height:18px;
+}
+.notif-surround{
+	overflow:hidden;
+	display:inline-block;
+}
