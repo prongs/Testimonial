@@ -87,6 +87,8 @@ define(["dojo/_base/declare", "dojo/_base/connect", "dojo/_base/lang", "dojo/_ba
 				if(self.friends_tabs[index])
 				{
 					self.tab_container.selectChild(self.friends_tabs[index]);
+					// if to_read, then update the content
+					self.friends_tabs[index].load_read_pane();
 					return;
 				}
 				var cp = new TestimonialContentPane({

@@ -114,7 +114,11 @@ class WriteTestimonialHandler(BaseRequestHandler):
     @gen.coroutine
     def post(self, for_user):
         by_user = self.get_current_user()['id']
-        yield motor.Op(self.settings.get('db').testimonials.update, {'by': str(by_user), 'for': str(for_user)}, {"$set": {'content': self.get_argument("content", "")}}, upsert=True)
+        if self.get_argument('notify', False):
+            yield motor.Op(self.settings.get('db').testimonials.update, {'by': str(by_user), 'for': str(for_user)}, {"$set": {'content': self.get_argument("content", ""), 'saved_content': self.get_argument("content", "")}}, upsert=True)
+            yield motor.Op(self.settings.get('db')['notif_' + str(for_user)].insert, {"from": str(by_user), "read": False})
+        else:
+            yield motor.Op(self.settings.get('db').testimonials.update, {'by': str(by_user), 'for': str(for_user)}, {"$set": {'content': self.get_argument("content", "")}}, upsert=True)
 
     @authenticated
     @asynchronous
@@ -134,7 +138,7 @@ class ReadTestimonialHandler(BaseRequestHandler):
     def get(self, by_user):
         for_user = self.get_current_user()['id']
         result = yield motor.Op(self.settings.get('db').testimonials.find_one, {'by': str(by_user), 'for': str(for_user)})
-        self.write({'content': result['content'] if result else ""})
+        self.write({'content': result['saved_content'] if result and 'saved_content' in result else ""})
         self.finish()
 
 
