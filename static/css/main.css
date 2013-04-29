@@ -21,3 +21,16 @@
 	overflow:hidden;
 	display:inline-block;
 }
+ul#notif_list_node{
+	width: 350px;
+}
+ul#notif_list_node li table{
+	width:100%;
+	cursor:pointer;
+}
+ul#notif_list_node li table tr td{
+	text-align: left;
+}
+ul#notif_list_node li table tr td strong{
+	font-weight: bold;
+}

@@ -19,6 +19,8 @@ define([
                             var self = this;
                             self.saved = true;
                             self.editor.save = lang.hitch(self, "save");
+                            if(self.to_read)
+                                self.read_pane.selected = true;
                             xhr.get({
                                 url: "/write/" + self.friend_id,
                                 handleAs: 'json',

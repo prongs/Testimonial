@@ -70,7 +70,7 @@ class AuthLoginHandler(BaseRequestHandler, tornado.auth.FacebookGraphMixin):
                                 client_id=self.settings["facebook_app_id"],
                                 extra_params={"scope": "read_stream"})
 
-    @gen.engine
+    @gen.coroutine
     def _on_auth(self, user):
         print "on_auth"
         if not user:
@@ -147,10 +147,9 @@ class NotificationChecker():
     def run(self, callback):
         "run check notifications"
         loop = ioloop.IOLoop.instance()
-        print self.connection
         db = self.connection.application.settings.get('db')
         collection = db["notif_" + self.connection.get_current_user()['id']]
-        cursor = collection.find(tailable=True, await_data=True)
+        cursor = collection.find({"read": False}, tailable=True, await_data=True)
         self.stopped = False
         self.results = {}
         while True:
@@ -184,6 +183,7 @@ class MongoAwareEncoder(DjangoJSONEncoder):
         else:
             return super(MongoAwareEncoder, self).default(o)
 
+
 class MyConnection(SocketConnection, tornado.auth.FacebookGraphMixin, BaseRequestHandler):
 
     @classmethod
@@ -204,8 +204,14 @@ class MyConnection(SocketConnection, tornado.auth.FacebookGraphMixin, BaseReques
 
     def send_notification(self, x):
         if(type(x) == dict):
-            print "json:", json.dumps(x, cls=MongoAwareEncoder)
             self.emit('notification', json.dumps(x, cls=MongoAwareEncoder))
+
+    @gen.coroutine
+    @event
+    def notification_read(self, x):
+        db = self.settings.get('db')
+        notif_coll = db["notif_" + self.get_current_user()['id']]
+        yield motor.Op(notif_coll.update, {'from': x}, {"$set": {'read': True}})
 
     @event
     def disconnect(self, *args, **kwargs):
