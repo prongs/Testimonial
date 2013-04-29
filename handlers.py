@@ -1,14 +1,19 @@
 import os
 import json
 import motor
+import datetime
+from bson import objectid
 import tornado.auth
 import tornado.escape
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
 import tornado.web
+from tornado import ioloop
 from tornado.web import authenticated, asynchronous, RequestHandler, UIModule, HTTPError
 from tornado import gen
+from tornadio2 import SocketConnection, TornadioRouter, event
+from django.core.serializers.json import DjangoJSONEncoder
 mappings = []
 
 
@@ -19,7 +24,7 @@ def url(url):
     return decorator
 
 
-class BaseHandler(RequestHandler, tornado.auth.FacebookGraphMixin):
+class BaseRequestHandler(RequestHandler):
     def get_current_user(self):
         user_json = self.get_secure_cookie("fb_user")
         if not user_json:
@@ -28,7 +33,7 @@ class BaseHandler(RequestHandler, tornado.auth.FacebookGraphMixin):
 
 
 @url("/main")
-class MainHandler(BaseHandler):
+class MainHandler(BaseRequestHandler, tornado.auth.FacebookGraphMixin):
     @authenticated
     @asynchronous
     def get(self):
@@ -44,7 +49,7 @@ class MainHandler(BaseHandler):
 
 
 @url(r'/auth/login')
-class AuthLoginHandler(BaseHandler):
+class AuthLoginHandler(BaseRequestHandler, tornado.auth.FacebookGraphMixin):
     @asynchronous
     def get(self):
         my_url = (self.request.protocol + "://" + self.request.host +
@@ -65,30 +70,37 @@ class AuthLoginHandler(BaseHandler):
                                 client_id=self.settings["facebook_app_id"],
                                 extra_params={"scope": "read_stream"})
 
+    @gen.engine
     def _on_auth(self, user):
         print "on_auth"
         if not user:
             raise HTTPError(500, "Facebook auth failed")
+        db = self.settings.get('db')
         self.set_secure_cookie("fb_user", tornado.escape.json_encode(user))
-        self.redirect(self.get_argument("next", "/"))
+        try:
+            yield motor.Op(db.create_collection, "notif_" + user['id'], capped=True, size=10000)
+        except Exception as e:
+            pass
+        finally:
+            self.redirect(self.get_argument("next", "/"))
 
 
 @url(r'/auth/logout')
-class AuthLogoutHandler(BaseHandler):
+class AuthLogoutHandler(BaseRequestHandler):
     def get(self):
         self.clear_cookie("fb_user")
         self.redirect(self.get_argument("next", "/"))
 
 
 @url(r'/auth/user')
-class AuthUserHandler(BaseHandler):
+class AuthUserHandler(BaseRequestHandler):
     @authenticated
     def get(self):
         self.write(self.get_current_user())
 
 
 @url(r'/')
-class HomeHandler(BaseHandler):
+class HomeHandler(BaseRequestHandler):
     @authenticated
     def get(self):
         token = self.xsrf_token
@@ -97,29 +109,28 @@ class HomeHandler(BaseHandler):
 
 
 @url(r'/write/(.*)')
-class WriteTestimonialHandler(BaseHandler):
+class WriteTestimonialHandler(BaseRequestHandler):
     @authenticated
-    @gen.engine
+    @gen.coroutine
     def post(self, for_user):
         by_user = self.get_current_user()['id']
         yield motor.Op(self.settings.get('db').testimonials.update, {'by': str(by_user), 'for': str(for_user)}, {"$set": {'content': self.get_argument("content", "")}}, upsert=True)
 
     @authenticated
-    @gen.engine
     @asynchronous
+    @gen.coroutine
     def get(self, for_user):
         by_user = self.get_current_user()['id']
         result = yield motor.Op(self.settings.get('db').testimonials.find_one, {'by': str(by_user), 'for': str(for_user)})
-        print result
         self.write({'content': result['content'] if result else ""})
         self.finish()
 
 
 @url(r'/read/(.*)')
-class ReadTestimonialHandler(BaseHandler):
+class ReadTestimonialHandler(BaseRequestHandler):
     @authenticated
-    @gen.engine
     @asynchronous
+    @gen.coroutine
     def get(self, by_user):
         for_user = self.get_current_user()['id']
         result = yield motor.Op(self.settings.get('db').testimonials.find_one, {'by': str(by_user), 'for': str(for_user)})
@@ -127,6 +138,89 @@ class ReadTestimonialHandler(BaseHandler):
         self.finish()
 
 
+class NotificationChecker():
+    def __init__(self, connection):
+        self.connection = connection
+        self.stopped = False
+
+    @gen.coroutine
+    def run(self, callback):
+        "run check notifications"
+        loop = ioloop.IOLoop.instance()
+        print self.connection
+        db = self.connection.application.settings.get('db')
+        collection = db["notif_" + self.connection.get_current_user()['id']]
+        cursor = collection.find(tailable=True, await_data=True)
+        self.stopped = False
+        self.results = {}
+        while True:
+            if self.stopped:
+                cursor.close()
+            if not cursor.alive:
+                print "not alive"
+                # While collection is empty, tailable cursor dies immediately
+                yield gen.Task(loop.add_timeout, datetime.timedelta(seconds=1))
+                cursor = collection.find(tailable=True, await_data=True)
+            if (yield cursor.fetch_next):
+                res = cursor.next_object()
+                if res.get('_id') not in self.results:
+                    self.results[res.get('_id')] = res
+                    callback(res)
+
+    def stop(self):
+        self.stopped = True
+
+
 class PostModule(UIModule):
     def render(self, post):
         return self.render_string("modules/post.html", post=post)
+
+
+class MongoAwareEncoder(DjangoJSONEncoder):
+    """JSON encoder class that adds support for Mongo objectids."""
+    def default(self, o):
+        if isinstance(o, objectid.ObjectId):
+            return str(o)
+        else:
+            return super(MongoAwareEncoder, self).default(o)
+
+class MyConnection(SocketConnection, tornado.auth.FacebookGraphMixin, BaseRequestHandler):
+
+    @classmethod
+    def set_application(cls, application):
+        cls.application = application
+
+    def on_open(self, request):
+        self.request = request
+
+    @event
+    def message(self, message):
+        pass
+
+    @event
+    def notifications(self):
+        self.notif_checker = NotificationChecker(self)
+        self.notif_checker.run(self.send_notification)
+
+    def send_notification(self, x):
+        if(type(x) == dict):
+            print "json:", json.dumps(x, cls=MongoAwareEncoder)
+            self.emit('notification', json.dumps(x, cls=MongoAwareEncoder))
+
+    @event
+    def disconnect(self, *args, **kwargs):
+        print "on_disconnect"
+
+    @event
+    def disconnected(self, *args, **kwargs):
+        print "on_disconnected"
+
+    def on_close(self, *args, **kwargs):
+        try:
+            self.notif_checker.stop()
+        except:
+            pass
+
+
+MyRouter = TornadioRouter(MyConnection)
+mappings = MyRouter.apply_routes(mappings)

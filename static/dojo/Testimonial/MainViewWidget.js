@@ -1,13 +1,13 @@
-define(["dojo/_base/declare", "dojo/_base/connect", "dojo/dom", "dojo/on", "dojo/dom-geometry", "dojo/_base/fx", "dojo/fx", "dojo/_base/array",
-	"dijit/registry", "dijit/_Widget", "dijit/_TemplatedMixin", "dijit/_WidgetsInTemplateMixin",
+define(["dojo/_base/declare", "dojo/_base/connect", "dojo/dom", "dojo/dom-class", "dojo/on", "dojo/dom-geometry", "dojo/_base/fx", "dojo/fx", "dojo/_base/array",
+	"dijit/registry", "dijit/_Widget", "dijit/_TemplatedMixin", "dijit/_WidgetsInTemplateMixin", "dojox/socket",
 	"dojox/data/JsonRestStore", "dojo/store/Observable", "dijit/tree/ForestStoreModel", "dojo/data/ItemFileReadStore", "dijit/Tree",
 	"dojo/text!./templates/MainViewWidget.html", "dojo/text!./templates/new_tab.html", 'testimonial/SavePlugin', 'testimonial/HelpPlugin',
 	"./TestimonialContentPane", "dijit/layout/ContentPane", "dijit/layout/TabContainer", "dijit/layout/TabController", "dijit/layout/BorderContainer", "dijit/form/TextBox", "dijit/form/Textarea","dijit/layout/AccordionContainer",
 	"dijit/layout/BorderContainer", "dijit/layout/ContentPane", "dijit/layout/TabContainer", "dijit/layout/AccordionContainer", "dijit/Editor", "dijit/_editor/plugins/FontChoice",
     "dijit/_editor/plugins/TextColor", "dijit/_editor/plugins/LinkDialog", "dijit/_editor/plugins/FullScreen"
     ],
-	function(declare, connect, dom, on, domGeom, base_fx, fx, array,
-		registry, _Widget, _TemplatedMixin, _WidgetsInTemplateMixin,
+	function(declare, connect, dom, domClass, on, domGeom, base_fx, fx, array,
+		registry, _Widget, _TemplatedMixin, _WidgetsInTemplateMixin, Socket,
 		JsonRestStore, Observable, ForestStoreModel, ItemFileReadStore, Tree,
 		template, newTabTemplate, TestimonialSavePlugin, TestimonialHelpPlugin, TestimonialContentPane){
 		return declare("testimonial.MainViewWidget", [_Widget, _TemplatedMixin, _WidgetsInTemplateMixin], {
@@ -76,7 +76,7 @@ define(["dojo/_base/declare", "dojo/_base/connect", "dojo/dom", "dojo/on", "dojo
 			friendRowClicked: function(a){
 				var self=this;
 				var row = a.currentTarget;
-				var index = parseInt(row.cells[row.cells.length-1].innerHTML);
+				var index = parseInt(row.cells[row.cells.length-1].innerHTML, 10);
 				if(self.friends_tabs[index])
 				{
 					self.tab_container.selectChild(self.friends_tabs[index]);
@@ -101,5 +101,53 @@ define(["dojo/_base/declare", "dojo/_base/connect", "dojo/dom", "dojo/on", "dojo
 				self.tab_container.selectChild(cp);
 				self.connect(registry.byNode(cp.editor.toolbar.containerNode.children[cp.editor.toolbar.containerNode.children.length-1]), "onChange", self.toggle_fullscreen);
 			},
+			setupWebsocket: function(){
+				var self = this;
+				self.num_notif = 0;
+				self.websocket = io.connect("/");
+				self.websocket.on('disconnect', function() {
+					self.websocket.socket.reconnect();
+				});
+				self.websocket.on('notification', function(data){
+					data = JSON.parse(data);
+					if(data.from){
+						self.add_notification(data);
+					}
+				});
+				self.websocket.on('connect', function(){
+					self.websocket.emit("notifications", {});
+				});
+			},
+			add_notification: function(data){
+				var self = this;
+				var notif_bg_node = dom.byId("notif_background");
+				domClass.remove(notif_bg_node, 'badge-info');
+				domClass.add(notif_bg_node, 'badge-important');
+				self.num_notif++;
+				var num_notif_node = dom.byId("num_notif");
+				if(!num_notif_node.style.bottom)
+					num_notif_node.style.bottom = "0px";
+				var anim = base_fx.animateProperty({
+					node: num_notif_node,
+					properties:{
+						bottom: {
+							end: 20*self.num_notif
+						}
+					}
+				});
+				num_notif_html = "";
+				for (var i = 0; i <= self.num_notif; i++) {
+					num_notif_html += (i + "<br />");
+				}
+				num_notif_node.innerHTML = num_notif_html;
+				play_notification_change_animation;
+			},
+			play_notification_change_animation: function(anim){
+				var self = this;
+				if(self.anim.active)
+					setTimeout(function(){
+						self.play_notification_change_animation(anim);
+					}, 100);
+			}
 		});
 	});

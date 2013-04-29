@@ -9,26 +9,21 @@
     <meta name="author" content="">
 
     <!-- Le styles -->
-    <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
-    <link href="/static/bootstrap/css/bootstrap-wysihtml5.css" rel="stylesheet">
-    <link href="/static/dojo/1.8.3/dijit/themes/soria/soria.css" rel="stylesheet">
-    <link href="/static/dojo/1.8.3/dijit/themes/tundra/tundra.css" rel="stylesheet">
-    <link href="/static/dojo/1.8.3/dijit/themes/claro/claro.css" rel="stylesheet">
-    <link href="/static/dojo/1.8.3/dojox/editor/plugins/resources/css/Save.css" rel="stylesheet">
-    <link href="/static/css/main.css" rel="stylesheet">
-
-    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-      <script src="/static/bootstrap/js/html5shiv.js"></script>
-    <![endif]-->
+    <link href="{{static_url('bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
+    <link href="{{static_url('bootstrap/css/bootstrap-responsive.min.css')}}" rel="stylesheet">
+    <link href="{{static_url('bootstrap/css/bootstrap-wysihtml5.css')}}" rel="stylesheet">
+    <link href="{{static_url('dojo/1.8.3/dijit/themes/soria/soria.css')}}" rel="stylesheet">
+    <link href="{{static_url('dojo/1.8.3/dijit/themes/tundra/tundra.css')}}" rel="stylesheet">
+    <link href="{{static_url('dojo/1.8.3/dijit/themes/claro/claro.css')}}" rel="stylesheet">
+    <link href="{{static_url('dojo/1.8.3/dojox/editor/plugins/resources/css/Save.css')}}" rel="stylesheet">
+    <link href="{{static_url('css/main.css')}}" rel="stylesheet">
 
     <!-- Fav and touch icons -->
-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/static/bootstrap/ico/apple-touch-icon-144-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/bootstrap/ico/apple-touch-icon-114-precomposed.png">
-      <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/bootstrap/ico/apple-touch-icon-72-precomposed.png">
-                    <link rel="apple-touch-icon-precomposed" href="/static/bootstrap/ico/apple-touch-icon-57-precomposed.png">
-                                   <link rel="shortcut icon" href="/static/bootstrap/ico/favicon.png">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="{{static_url('bootstrap/ico/apple-touch-icon-144-precomposed.png')}}">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="{{static_url('bootstrap/ico/apple-touch-icon-114-precomposed.png')}}">
+      <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{{static_url('bootstrap/ico/apple-touch-icon-72-precomposed.png')}}">
+                    <link rel="apple-touch-icon-precomposed" href="{{static_url('bootstrap/ico/apple-touch-icon-57-precomposed.png')}}">
+                                   <link rel="shortcut icon" href="{{static_url('bootstrap/ico/favicon.png')}}">
     <!-- Style overrides: -->
     <style type="text/css">
       body {
@@ -72,7 +67,7 @@
                 </form>
               </li>
               <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Home <span class="notif-surround"><span class="badge badge-info notif-background" >&nbsp;</span><span id="num_notif">0<br/>1<br/>2</span></span><b class="caret"></b></a>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Notifications <span class="notif-surround"><span class="badge badge-info notif-background" id="notif_background">&nbsp;</span><span id="num_notif">0<br/></span></span><b class="caret"></b></a>
                 <ul class="dropdown-menu">
                   <li class="nav-header">Notifications</li>
                   <li><a href="#">Action</a></li>
@@ -108,6 +103,7 @@
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/javascript" src="{{static_url('js/socket.io.js')}}"></script>
     <div id="fb-root"></div>
     <script type="text/javascript">
       var dojoConfig=(function(){
@@ -128,7 +124,7 @@
 
       })();
     </script>
-    <script type="text/javascript" src="/static/dojo/1.8.3/dojo/dojo.js"></script>
+    <script type="text/javascript" src="{{static_url('dojo/1.8.3/dojo/dojo.js')}}"></script>
     <script type="text/javascript">
       require([
           "dijit/dijit",
@@ -137,10 +133,10 @@
           "testimonial/MainViewWidget",
         ]);
     </script>
-    <script src="/static/js/jquery-1.9.1.min.js"></script>
-    <script src="/static/js/wysihtml5-0.3.0.min.js"></script>
-    <script src="/static/bootstrap/js/bootstrap.min.js"></script>
-    <script src="/static/bootstrap/js/bootstrap-wysihtml5.js"></script>
+    <script src="{{static_url('js/jquery-1.9.1.min.js')}}"></script>
+    <script src="{{static_url('js/wysihtml5-0.3.0.min.js')}}"></script>
+    <script src="{{static_url('bootstrap/js/bootstrap.min.js')}}"></script>
+    <script src="{{static_url('bootstrap/js/bootstrap-wysihtml5.js')}}"></script>
     <script type="text/javascript">
       // You probably don't want to use globals, but this is just example code
       var fbAppId = "{{facebook_app_id}}";
@@ -166,7 +162,9 @@
                 if(response.data)
                 {
                   friends_data=response;
-                  registry.byId("mainWidget_div").set_friends_data(friends_data);
+                  var mainWidget = registry.byId("mainWidget_div");
+                  mainWidget.setupWebsocket();
+                  mainWidget.set_friends_data(friends_data);
                 }
                 else
                 {

@@ -6,16 +6,13 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.options
 import tornado.web
-import unicodedata
-from django.core.management import execute_from_command_line
 from tornado.options import define, options
 from tornado.httpclient import AsyncHTTPClient
 import handlers
 import motor
 import pymongo
-import pycurl
 import certifi
-
+import tornadio2
 
 # import and define tornado-y things
 define("port", default=8888, help="run on the given port", type=int)
@@ -31,6 +28,7 @@ define("facebook_secret", help="your Facebook application secret",
 con = motor.MotorClient(os.getenv('MONGOHQ_URL')).open_sync()
 db = con.testimonial_db
 db['testimonials'].ensure_index([('by', pymongo.ASCENDING), ('for', pymongo.ASCENDING)])
+db['users'].ensure_index([('fbid', pymongo.ASCENDING)])
 
 defaults = dict(ca_certs=certifi.where())
 http_proxy = os.environ.get('http_proxy')
@@ -61,8 +59,7 @@ class Application(tornado.web.Application):
             ui_modules={"Post": PostModule},
             autoescape=None,
             db=db,
-            proxy_host="10.10.78.22",
-            proxy_port=3128
+            socket_io_port=8888
         )
         tornado.web.Application.__init__(self, mappings, **tornado_settings)
 
@@ -72,7 +69,7 @@ class PostModule(tornado.web.UIModule):
         return self.render_string("modules/post.html", post=post)
 
 
-# the main page
+# the default main page
 class MainHandler(tornado.web.RequestHandler):
     def get(self, q):
         if 'GOOGLEANALYTICSID' in os.environ:
@@ -89,14 +86,9 @@ class MainHandler(tornado.web.RequestHandler):
 
 # RAMMING SPEEEEEEED!
 def main():
-    # print settings.DATABASES
-    # execute_from_command_line(["syncdb", "syncdb"])
-    tornado.options.parse_command_line()
-    http_server = tornado.httpserver.HTTPServer(Application())
-    http_server.listen(os.environ.get("PORT", 8888))
-
-    # start it up
-    tornado.ioloop.IOLoop.instance().start()
+    app = Application()
+    handlers.MyConnection.set_application(app)
+    tornadio2.SocketServer(app)
 
 
 if __name__ == "__main__":
