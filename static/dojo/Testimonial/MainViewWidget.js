@@ -124,7 +124,8 @@ define(["dojo/_base/declare", "dojo/_base/connect", "dojo/_base/lang", "dojo/_ba
 				});
 				self.websocket.on('notification', function(data){
 					data = JSON.parse(data);
-					if(data.from&&self.unread_notifications.indexOf(data.from)==-1){
+					if(data.from&&self.unread_notifications.indexOf(data._id)==-1){
+						self.unread_notifications.push(data._id);
 						self.notifications.push(data);
 						self.num_notif++;
 						console.log("self.num_notif: "+self.num_notif);
@@ -211,7 +212,7 @@ define(["dojo/_base/declare", "dojo/_base/connect", "dojo/_base/lang", "dojo/_ba
 					});
 					self.connect(node, 'onclick', function(e){
 						event.stop(e);
-						self.notification_clicked(node, notification.from);
+						self.notification_clicked(node, notification.from, notification._id);
 					});
 				});
 				self.notifications = [];
@@ -220,24 +221,35 @@ define(["dojo/_base/declare", "dojo/_base/connect", "dojo/_base/lang", "dojo/_ba
 					self.play_notification_change_animation();
 				}, 500);
 			},
-			notification_clicked: function(node, id){
+			notification_clicked: function(node, id, _id){ // id is fbid and _id is the _id of the mongodb
 				var self = this;
 				self.open_friend_tab(id, true);
-				node.style.opacity = 0;
-				base_fx.animateProperty({
-					node: node,
-					properties:{
-						height:{
-							end:0
-						}
-					},
-					onEnd:function(){
-						node.parentNode.removeChild(node);
+				var to_wipe = [];
+				var other_notification_from_names = $("li table tr td strong", $(node).parent());
+				var this_notification_from_name = $("table tr td strong", $(node)).html();
+				for (var j = 0; j < other_notification_from_names.length; j++) {
+					if($(other_notification_from_names[j]).html() == this_notification_from_name)
+					{
+						to_wipe.push(other_notification_from_names[j].parentNode.parentNode.parentNode.parentNode.parentNode);
 					}
-				}).play();
-				self.num_notif--;
-				i = self.unread_notifications.splice(self.unread_notifications.indexOf(id), 1); //remove from array
-				self.websocket.emit("notification_read", id);
+				}
+				array.forEach(to_wipe, function(nd, i) {
+					nd.style.opacity = 0;
+					base_fx.animateProperty({
+						node: nd,
+						properties:{
+							height:{
+								end:0
+							}
+						},
+						onEnd:function(){
+							nd.parentNode.removeChild(nd);
+						}
+					}).play();
+					self.num_notif--;
+				});
+				i = self.unread_notifications.splice(self.unread_notifications.indexOf(_id), 1); //remove from array
+				self.websocket.emit("notification_read", _id);
 				if(!self.notif_anim_playing)
 					self.play_notification_change_animation();
 			}

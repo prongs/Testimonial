@@ -160,7 +160,7 @@ class NotificationChecker():
             if self.stopped:
                 cursor.close()
             if not cursor.alive:
-                print "not alive"
+                # print "not alive"
                 # While collection is empty, tailable cursor dies immediately
                 yield gen.Task(loop.add_timeout, datetime.timedelta(seconds=1))
                 cursor = collection.find(tailable=True, await_data=True)
@@ -212,10 +212,11 @@ class MyConnection(SocketConnection, tornado.auth.FacebookGraphMixin, BaseReques
 
     @gen.coroutine
     @event
-    def notification_read(self, x):
+    def notification_read(self, _id):
         db = self.settings.get('db')
         notif_coll = db["notif_" + self.get_current_user()['id']]
-        yield motor.Op(notif_coll.update, {'from': x}, {"$set": {'read': True}})
+        res = yield motor.Op(notif_coll.find_one, {'_id': objectid.ObjectId(_id)})
+        yield motor.Op(notif_coll.update, {'from': res['from']}, {"$set": {'read': True}}, multi=True)
 
     @event
     def disconnect(self, *args, **kwargs):
