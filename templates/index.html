@@ -154,8 +154,14 @@
         });
         // Put additional init code here
         require(["dojo/ready", "dojo/dom", "dojo/_base/fx", "dojo/on", "dijit/registry"], function(ready, dom, base_fx, on, registry){
-          var mainWidget = registry.byId("mainWidget_div");
-          mainWidget.setupWebsocket();
+          var setupWebsocket = function(){
+              var mainWidget = registry.byId("mainWidget_div");
+              if(mainWidget)
+                mainWidget.setupWebsocket();
+              else
+                setTimeout(setupWebsocket, 100);
+            }
+          setupWebsocket();
           FB.login(function(response) {
             if (response.authResponse)
             {
@@ -164,7 +170,14 @@
                 if(response.data)
                 {
                   friends_data=response;
-                  mainWidget.set_friends_data(friends_data);
+                  var set_friends_data = function(){
+                    var mainWidget = registry.byId("mainWidget_div");
+                    if(mainWidget)
+                      mainWidget.set_friends_data(friends_data);
+                    else
+                      setTimeout(set_friends_data, 100);
+                  }
+                  set_friends_data();
                 }
                 else
                 {
