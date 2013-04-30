@@ -118,7 +118,7 @@ define(["dojo/_base/declare", "dojo/_base/connect", "dojo/_base/lang", "dojo/_ba
 				self.notifications = [];
 				self.unread_notifications = [];
 				self.notif_anim_playing = false;
-				self.websocket = io.connect("ws://"+window.location.host+"/");
+				self.websocket = io.connect("/");
 				self.websocket.on('disconnect', function() {
 					self.websocket.socket.reconnect();
 				});
