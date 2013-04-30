@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+import settings
 import os.path
 import tornado.escape
 import tornado.httpserver
@@ -16,8 +18,6 @@ import tornadio2
 
 # import and define tornado-y things
 define("port", default=8888, help="run on the given port", type=int)
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
-import settings
 
 
 define("facebook_app_id", help="your Facebook application API key",
