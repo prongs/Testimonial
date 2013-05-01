@@ -59,7 +59,8 @@ class Application(tornado.web.Application):
             ui_modules={"Post": PostModule},
             autoescape=None,
             db=db,
-            socket_io_port=os.environ.get("PORT", 8888)
+            socket_io_port=os.environ.get("PORT", 8888),
+            avoid_websockets=os.environ.get("AVOID_WEBSOCKETS", 0)
         )
         tornado.web.Application.__init__(self, mappings, **tornado_settings)
 

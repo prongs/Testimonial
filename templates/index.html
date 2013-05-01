@@ -154,6 +154,11 @@
         });
         // Put additional init code here
         require(["dojo/ready", "dojo/dom", "dojo/_base/fx", "dojo/on", "dijit/registry"], function(ready, dom, base_fx, on, registry){
+          var avoid_websockets = {{avoid_websockets}};
+          if(avoid_websockets)
+            io.transports = ["xhr-polling", "jsonp-polling", "flashsocket", "htmlfile"]
+          else
+            io.transports = ["websocket", "xhr-polling", "jsonp-polling", "flashsocket", "htmlfile"]
           var setupWebsocket = function(){
               var mainWidget = registry.byId("mainWidget_div");
               if(mainWidget)
