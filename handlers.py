@@ -105,7 +105,7 @@ class HomeHandler(BaseRequestHandler):
     def get(self):
         token = self.xsrf_token
         user = self.get_current_user()
-        self.render('index.html', notifications=True, user=user, facebook_app_id=self.settings['facebook_app_id'])
+        self.render('index.html', user=user, facebook_app_id=self.settings.get('facebook_app_id'), avoid_websockets=self.settings.get('avoid_websockets'))
 
 
 @url(r'/write/(.*)')
