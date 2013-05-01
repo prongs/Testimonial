@@ -88,7 +88,7 @@ class MainHandler(tornado.web.RequestHandler):
 def main():
     app = Application()
     handlers.MyConnection.set_application(app)
-    tornadio2.SocketServer(app)
+    tornadio2.SocketServer(app, xheaders=True)
 
 
 if __name__ == "__main__":
