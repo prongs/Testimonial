@@ -44,6 +44,7 @@ define(["dojo/_base/declare", "dojo/_base/connect", "dojo/_base/lang", "dojo/_ba
 			},
 			set_friends_data: function(friends_data){
 				var self=this;
+				self.ctr= -1;
 				self.friends_data = friends_data;
 				self.friends_data.data.sort(function(a,b){
 					if (a.name < b.name)
@@ -64,17 +65,112 @@ define(["dojo/_base/declare", "dojo/_base/connect", "dojo/_base/lang", "dojo/_ba
 				array.forEach(self.friends_list_div.rows, function(row){
 					self.connect(row, "click", lang.hitch(self, "friendRowClicked"));
 				});
-				self.connect(self.friend_search_box, "onKeyUp", self.searchFriend);
+				self.search_box_focus = false;
+				self.search_box_value = "";
+				self.search_box_last_searched_query = "";
+				self.connect(self.friend_search_box, "onFocus", self.searchBoxOnFocus);
+				self.connect(self.friend_search_box, "onBlur", self.searchBoxOnBlur);
+				$(self.search_box_feedback_alert_div).alert();
+			},
+			set_search_box_alert: function(str, cls)
+			{
+				var self = this;
+				domClass.remove(self.search_box_feedback_alert_div, "alert-info");
+				domClass.remove(self.search_box_feedback_alert_div, "alert-success");
+				domClass.remove(self.search_box_feedback_alert_div, "alert-warning");
+				domClass.add(self.search_box_feedback_alert_div, cls);
+				self.search_box_feedback_alert_span.innerHTML = str;
 			},
 			searchFriend: function(evt){
 				var self = this;
-				query = self.friend_search_box.get('value');
-				array.forEach(self.friends_list_div.rows, function(row){
-					((row.cells[1].innerHTML.toLowerCase().search(query.toLowerCase())>=0)?fx.wipeIn:fx.wipeOut)({
-						node: row
-					}).play();
-
-				});
+				self.set_search_box_alert("Searching...", "alert-warning");
+				query = self.friend_search_box.get('value').trim().toLowerCase();
+				if(query.search(self.search_box_last_searched_query)>=0)
+				{
+					array.forEach(self.friends_list_div.rows, function(row){
+						if(row.style.display!=="none"&&(row.cells[1].innerHTML.toLowerCase().search(query)<0))
+							fx.wipeOut({
+								node: row
+							}).play();
+					});
+				}
+				else if(self.search_box_last_searched_query.search(query)>=0)
+				{
+					array.forEach(self.friends_list_div.rows, function(row){
+						if(row.style.display=="none"&&(row.cells[1].innerHTML.toLowerCase().search(query)>=0))
+							fx.wipeIn({
+								node: row
+							}).play();
+					});
+				}
+				else
+				{
+					array.forEach(self.friends_list_div.rows, function(row){
+						((row.cells[1].innerHTML.toLowerCase().search(query)>=0)?fx.wipeIn:fx.wipeOut)({
+							node: row
+						}).play();
+					});
+				}
+				self.set_search_box_alert("Search Completed", "alert-success");
+				self.ctr = 1;
+				self.search_box_last_searched_query = query;
+			},
+			searchBoxOnFocus: function(){
+				var self = this;
+				self.search_box_focus = true;
+				self.ctr = -1;
+				var f = function(){
+					if(self.ctr>=0)
+						self.ctr++;
+					var query = self.friend_search_box.get('value').trim().toLowerCase();
+					if(query == self.search_box_value &&
+							self.search_box_value!=="" &&
+							self.search_box_value!==self.search_box_last_searched_query
+						)
+						self.searchFriend();
+					else
+					{
+						if(self.search_box_focus)
+						{
+							if(query == self.search_box_last_searched_query)
+							{
+								if(query != self.search_box_last_searched_query)
+								{
+									self.set_search_box_alert("keep typing...", "alert-warning");
+								}
+								else
+									{
+										if(self.ctr % 10 === 0)
+										{
+											self.set_search_box_alert("Start typing...", "alert-warning");
+										}
+									}
+							}
+							else
+							{
+								if(query!=="")
+								{
+									self.set_search_box_alert("Stop typing to let us search...", "alert-warning");
+								}
+							}
+						}
+					}
+					self.search_box_value = query;
+					if(self.search_box_focus)
+						setTimeout(f, 500);
+				};
+				self.ctr = 9;
+				f();
+				self.ctr = -1;
+			},
+			searchBoxOnBlur: function(){
+				var self = this;
+				self.ctr = -1;
+				domClass.remove(self.search_box_feedback_alert_div, "alert-warning");
+				domClass.remove(self.search_box_feedback_alert_div, "alert-success");
+				domClass.add(self.search_box_feedback_alert_div, "alert-info");
+				self.search_box_feedback_alert_span.innerHTML = "Search by Name";
+				self.search_box_focus = false;
 			},
 			friendRowClicked: function(a){
 				var self = this;

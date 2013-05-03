@@ -11,6 +11,7 @@ import tornado.options
 import tornado.web
 from tornado import ioloop
 from tornado.web import authenticated, asynchronous, RequestHandler, UIModule, HTTPError
+from tornado.auth import FacebookGraphMixin
 from tornado import gen
 from tornadio2 import SocketConnection, TornadioRouter, event
 from django.core.serializers.json import DjangoJSONEncoder
@@ -31,9 +32,21 @@ class BaseRequestHandler(RequestHandler):
             return None
         return tornado.escape.json_decode(user_json)
 
+    @property
+    def db(self):
+        return self.settings.get('db')
+
+    @gen.coroutine
+    def ensure_user_in_db(self, user_id):
+        "returns True if already in db else false"
+        res = yield motor.Op(self.db.users.find_one, {"fbid": user_id})
+        if not res:
+            yield motor.Op(self.db.users.insert, {"fbid": user_id, "created": datetime.datetime.now()})
+            yield motor.Op(self.db.create_collection, "notif_" + user_id, capped=True, size=10000)
+
 
 @url("/main")
-class MainHandler(BaseRequestHandler, tornado.auth.FacebookGraphMixin):
+class MainHandler(BaseRequestHandler, FacebookGraphMixin):
     @authenticated
     @asynchronous
     def get(self):
@@ -49,7 +62,7 @@ class MainHandler(BaseRequestHandler, tornado.auth.FacebookGraphMixin):
 
 
 @url(r'/auth/login')
-class AuthLoginHandler(BaseRequestHandler, tornado.auth.FacebookGraphMixin):
+class AuthLoginHandler(BaseRequestHandler, FacebookGraphMixin):
     @asynchronous
     def get(self):
         my_url = (self.request.protocol + "://" + self.request.host +
@@ -75,14 +88,9 @@ class AuthLoginHandler(BaseRequestHandler, tornado.auth.FacebookGraphMixin):
         print "on_auth"
         if not user:
             raise HTTPError(500, "Facebook auth failed")
-        db = self.settings.get('db')
         self.set_secure_cookie("fb_user", tornado.escape.json_encode(user))
-        try:
-            yield motor.Op(db.create_collection, "notif_" + user['id'], capped=True, size=10000)
-        except Exception as e:
-            pass
-        finally:
-            self.redirect(self.get_argument("next", "/"))
+        yield motor.Op(self.ensure_user_in_db, user['id'])
+        self.redirect(self.get_argument("next", "/"))
 
 
 @url(r'/auth/logout')
@@ -102,30 +110,64 @@ class AuthUserHandler(BaseRequestHandler):
 @url(r'/')
 class HomeHandler(BaseRequestHandler):
     @authenticated
+    @asynchronous
+    @gen.coroutine
     def get(self):
         token = self.xsrf_token
         user = self.get_current_user()
+        yield motor.Op(self.db.users.update, {"fbid": user['id']}, {"$set": {"last_login": datetime.datetime.now()}})
         self.render('index.html', user=user, facebook_app_id=self.settings.get('facebook_app_id'), avoid_websockets=self.settings.get('avoid_websockets'))
+        self.finish()
 
 
 @url(r'/write/(.*)')
-class WriteTestimonialHandler(BaseRequestHandler):
+class WriteTestimonialHandler(BaseRequestHandler, FacebookGraphMixin):
     @authenticated
+    @asynchronous
     @gen.coroutine
     def post(self, for_user):
         by_user = self.get_current_user()['id']
+        yield motor.Op(self.ensure_user_in_db, for_user)
         if self.get_argument('notify', False):
-            yield motor.Op(self.settings.get('db').testimonials.update, {'by': str(by_user), 'for': str(for_user)}, {"$set": {'content': self.get_argument("content", ""), 'saved_content': self.get_argument("content", "")}}, upsert=True)
-            yield motor.Op(self.settings.get('db')['notif_' + str(for_user)].insert, {"from": str(by_user), "read": False})
+            yield motor.Op(self.db.testimonials.update, {'by': str(by_user), 'for': str(for_user)}, {"$set": {'content': self.get_argument("content", ""), 'saved_content': self.get_argument("content", "")}}, upsert=True)
+            yield motor.Op(self.db['notif_' + str(for_user)].insert, {"from": str(by_user), "read": False})
         else:
-            yield motor.Op(self.settings.get('db').testimonials.update, {'by': str(by_user), 'for': str(for_user)}, {"$set": {'content': self.get_argument("content", "")}}, upsert=True)
+            yield motor.Op(self.db.testimonials.update, {'by': str(by_user), 'for': str(for_user)}, {"$set": {'content': self.get_argument("content", "")}}, upsert=True)
+
+        whether_to_fb_notify = True
+
+        f_u = yield motor.Op(self.db.users.find_one, {"fbid": for_user})
+        last_login = f_u.get('last_login', None)
+        if last_login:
+            delta = datetime.datetime.now() - last_login
+            if delta.days < 1:
+                whether_to_fb_notify = False
+        last_fb_notified = f_u.get('last_fb_notified', None)
+        if last_fb_notified:
+            delta = datetime.datetime.now() - last_fb_notified
+            if delta.days < 1:
+                whether_to_fb_notify = False
+
+        if whether_to_fb_notify:
+            print "whether_to_fb_notify"
+            num_notifs = yield motor.Op(self.db["notif_" + for_user].find({"read": False}).count)
+            print "num_notifs: ", num_notifs
+            template = ("You have an unread testimonial from @[%s]" % (by_user))
+            if num_notifs > 1:
+                template = ("You have unread testimonials from @[%s] and %d other friends" % (by_user, num_notifs - 1))
+            print template
+            res = yield self.facebook_request("/" + for_user + "/notifications",
+                                              access_token=self.get_current_user().get('access_token'),
+                                              post_args={"template": template, "href": "/"}, **{"template": template, "href": "/"})
+            print res
+        self.finish()
 
     @authenticated
     @asynchronous
     @gen.coroutine
     def get(self, for_user):
         by_user = self.get_current_user()['id']
-        result = yield motor.Op(self.settings.get('db').testimonials.find_one, {'by': str(by_user), 'for': str(for_user)})
+        result = yield motor.Op(self.db.testimonials.find_one, {'by': str(by_user), 'for': str(for_user)})
         self.write({'content': result['content'] if result else ""})
         self.finish()
 
@@ -137,7 +179,7 @@ class ReadTestimonialHandler(BaseRequestHandler):
     @gen.coroutine
     def get(self, by_user):
         for_user = self.get_current_user()['id']
-        result = yield motor.Op(self.settings.get('db').testimonials.find_one, {'by': str(by_user), 'for': str(for_user)})
+        result = yield motor.Op(self.db.testimonials.find_one, {'by': str(by_user), 'for': str(for_user)})
         self.write({'content': result['saved_content'] if result and 'saved_content' in result else ""})
         self.finish()
 
@@ -151,7 +193,7 @@ class NotificationChecker():
     def run(self, callback):
         "run check notifications"
         loop = ioloop.IOLoop.instance()
-        db = self.connection.application.settings.get('db')
+        db = self.connection.db
         collection = db["notif_" + self.connection.get_current_user()['id']]
         cursor = collection.find({"read": False}, tailable=True, await_data=True)
         self.stopped = False
@@ -188,7 +230,7 @@ class MongoAwareEncoder(DjangoJSONEncoder):
             return super(MongoAwareEncoder, self).default(o)
 
 
-class MyConnection(SocketConnection, tornado.auth.FacebookGraphMixin, BaseRequestHandler):
+class MyConnection(SocketConnection, FacebookGraphMixin, BaseRequestHandler):
 
     @classmethod
     def set_application(cls, application):
@@ -213,7 +255,7 @@ class MyConnection(SocketConnection, tornado.auth.FacebookGraphMixin, BaseReques
     @gen.coroutine
     @event
     def notification_read(self, _id):
-        db = self.settings.get('db')
+        db = self.db
         notif_coll = db["notif_" + self.get_current_user()['id']]
         res = yield motor.Op(notif_coll.find_one, {'_id': objectid.ObjectId(_id)})
         yield motor.Op(notif_coll.update, {'from': res['from']}, {"$set": {'read': True}}, multi=True)
