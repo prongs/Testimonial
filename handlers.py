@@ -81,7 +81,7 @@ class AuthLoginHandler(BaseRequestHandler, FacebookGraphMixin):
         print "authorize_redirect"
         self.authorize_redirect(redirect_uri=my_url,
                                 client_id=self.settings["facebook_app_id"],
-                                extra_params={"scope": "read_stream"})
+                                extra_params={"scope": ""})
 
     @gen.coroutine
     def _on_auth(self, user):
@@ -117,7 +117,6 @@ class HomeHandler(BaseRequestHandler):
         user = self.get_current_user()
         yield motor.Op(self.db.users.update, {"fbid": user['id']}, {"$set": {"last_login": datetime.datetime.now()}})
         self.render('index.html', user=user, facebook_app_id=self.settings.get('facebook_app_id'), avoid_websockets=self.settings.get('avoid_websockets'))
-        self.finish()
 
 
 @url(r'/write/(.*)')
@@ -149,6 +148,12 @@ class WriteTestimonialHandler(BaseRequestHandler, FacebookGraphMixin):
                 whether_to_fb_notify = False
 
         if whether_to_fb_notify:
+            app_access_token_url = self._oauth_request_token_url(client_id=self.settings["facebook_app_id"],
+                                                                 client_secret=self.settings["facebook_secret"],
+                                                                 extra_params={"grant_type": "client_credentials"})
+            res = yield motor.Op(self.get_auth_http_client().fetch, app_access_token_url)
+            x = res.buffer.read()
+            app_access_token = x[x.find('access_token=') + len("access_token="):]
             print "whether_to_fb_notify"
             num_notifs = yield motor.Op(self.db["notif_" + for_user].find({"read": False}).count)
             print "num_notifs: ", num_notifs
@@ -157,8 +162,8 @@ class WriteTestimonialHandler(BaseRequestHandler, FacebookGraphMixin):
                 template = ("You have unread testimonials from @[%s] and %d other friends" % (by_user, num_notifs - 1))
             print template
             res = yield self.facebook_request("/" + for_user + "/notifications",
-                                              access_token=self.get_current_user().get('access_token'),
-                                              post_args={"template": template, "href": "/"}, **{"template": template, "href": "/"})
+                                              access_token=app_access_token,
+                                              post_args={"template": template, "href": "/"})
             print res
         self.finish()
 

@@ -1,10 +1,10 @@
  ✔ wss:// doesn't work on heroku. fix this! @done (13-05-03 17:56)
- ☐ At first login:
-   ☐ Insert into users table(fbid, last-login)
-   ☐ make the notification collection (try-catch)
+ ✔ At first login: @done (13-05-03 21:40)
+   ✔ Insert into users table(fbid, last-login) @done (13-05-03 21:40)
+   ✔ make the notification collection (try-catch) @done (13-05-03 21:40)
  ☐ When someone writes a testimonial:
    ☐ if the receiver hasn't logged in yet, or the last login was x-days early, send to fb
-   ☐ keep adding up in the notification collection
+   ✔ keep adding up in the notification collection @done (13-05-03 21:41)
  ☐ Editor Help on first login
- ☐ Improve friend search
-
+ ✔ Improve friend search @done (13-05-03 21:40)
+ ☐ Right now someone can send infi notifications to someone. Fix that.
