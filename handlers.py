@@ -92,7 +92,7 @@ class AuthLoginHandler(BaseRequestHandler, FacebookGraphMixin):
         self.set_secure_cookie("fb_user", tornado.escape.json_encode(user))
         yield motor.Op(self.ensure_user_in_db, user['id'])
         print "after ensuring in db ", user['id']
-        self.redirect(self.get_argument("next", "/"))
+        self.redirect(self.get_argument("next", "/home"))
 
 
 @url(r'/auth/logout')
