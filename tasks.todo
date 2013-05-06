@@ -2,9 +2,9 @@
  ✔ At first login: @done (13-05-03 21:40)
    ✔ Insert into users table(fbid, last-login) @done (13-05-03 21:40)
    ✔ make the notification collection (try-catch) @done (13-05-03 21:40)
- ☐ When someone writes a testimonial:
-   ☐ if the receiver hasn't logged in yet, or the last login was x-days early, send to fb
+ ✔ When someone writes a testimonial: @done (13-05-04 01:04)
+   ✔ if the receiver hasn't logged in yet, or the last login was x-days early, send to fb @done (13-05-04 01:04)
    ✔ keep adding up in the notification collection @done (13-05-03 21:41)
  ☐ Editor Help on first login
  ✔ Improve friend search @done (13-05-03 21:40)
- ☐ Right now someone can send infi notifications to someone. Fix that.
+ ☐ Right now someone can send infi notifications to someone. Fix that. In the ui, if notification from same person turns up, delete the older one and keep the new one. That's all.

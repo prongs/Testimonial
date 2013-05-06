@@ -291,7 +291,8 @@ define(["dojo/_base/declare", "dojo/_base/connect", "dojo/_base/lang", "dojo/_ba
 						bottom: {
 							end: 20*n
 						}
-					}
+					},
+					rate: 20*n //uniform speed
 				});
 				num_notif_html = "";
 				for (var i = 0; i <= n+5; i++) {

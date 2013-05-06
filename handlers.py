@@ -39,10 +39,15 @@ class BaseRequestHandler(RequestHandler):
     @gen.coroutine
     def ensure_user_in_db(self, user_id):
         "returns True if already in db else false"
+        print "ensure_user_in_db 1"
         res = yield motor.Op(self.db.users.find_one, {"fbid": user_id})
+        print "ensure_user_in_db 2"
         if not res:
+            print "ensure_user_in_db 3"
             yield motor.Op(self.db.users.insert, {"fbid": user_id, "created": datetime.datetime.now()})
+            print "ensure_user_in_db 4"
             yield motor.Op(self.db.create_collection, "notif_" + user_id, capped=True, size=10000)
+            print "ensure_user_in_db 5"
 
 
 @url("/main")
@@ -69,23 +74,19 @@ class AuthLoginHandler(BaseRequestHandler, FacebookGraphMixin):
                   "/auth/login?next=" +
                   tornado.escape.url_escape(self.get_argument("next", "/")))
         if self.get_argument("code", False):
-            print "code false"
             self.get_authenticated_user(
                 redirect_uri=my_url,
                 client_id=self.settings["facebook_app_id"],
                 client_secret=self.settings["facebook_secret"],
                 code=self.get_argument("code"),
                 callback=self._on_auth)
-            print "after get_authenticated_user"
             return
-        print "authorize_redirect"
         self.authorize_redirect(redirect_uri=my_url,
                                 client_id=self.settings["facebook_app_id"],
                                 extra_params={"scope": ""})
 
     @gen.coroutine
     def _on_auth(self, user):
-        print "on_auth"
         if not user:
             raise HTTPError(500, "Facebook auth failed")
         self.set_secure_cookie("fb_user", tornado.escape.json_encode(user))
