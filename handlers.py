@@ -99,7 +99,7 @@ class AuthLoginHandler(BaseRequestHandler, FacebookGraphMixin):
 class AuthLogoutHandler(BaseRequestHandler):
     def get(self):
         self.clear_cookie("fb_user")
-        self.redirect(self.get_argument("next", "/"))
+        self.redirect(self.get_argument("next", "/#logout"))
 
 
 @url(r'/auth/user')

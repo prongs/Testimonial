@@ -66,7 +66,7 @@
 	<script>
 	window.fbAsyncInit = function(){
 		FB.getLoginStatus(function(response) {
-			if (response.status === 'connected')
+			if (response.status === 'connected' && window.location.hash!="logout")
 			{
 			    window.location = "/home"
 		  	}
