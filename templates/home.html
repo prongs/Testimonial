@@ -24,6 +24,23 @@
       <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{{static_url('bootstrap/ico/apple-touch-icon-72-precomposed.png')}}">
                     <link rel="apple-touch-icon-precomposed" href="{{static_url('bootstrap/ico/apple-touch-icon-57-precomposed.png')}}">
                                    <link rel="shortcut icon" href="{{static_url('bootstrap/ico/favicon.png')}}">
+    <style type="text/css">
+    body {
+      padding-top: 60px;
+      padding-bottom: 40px;
+    }
+    .img-profile{
+      width:30px;
+      height:30px;
+    }
+    .profile-name{
+      display: inline-block;
+      padding-left: 1px;
+    }
+    .friend_row{
+      cursor:pointer;
+    }
+    </style>
 
   </head>
 
@@ -140,7 +157,7 @@
               var mainWidget = registry.byId("mainWidget_div");
               if(mainWidget)
                 mainWidget.setupWebsocket();
-              else
+               else
                 setTimeout(setupWebsocket, 100);
             }
           setupWebsocket();
