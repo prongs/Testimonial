@@ -48,7 +48,10 @@
       <div class="row">
         <div class="span4">
           <h2>Write Testimonials For your friends</h2>
-          <p><div class="fb-login-button" size="large" data-show-faces="true" data-width="300" data-max-rows="2"></div></p>
+          <p>
+          	<a href="/home" class="btn btn-primary btn-large"><i class="icon-white icon-user"></i> Login with Facebook</a>
+          	<div id="fb_login_plugin"></div>
+          </p>
         </div>
       </div>
 
@@ -66,9 +69,17 @@
 	<script>
 	window.fbAsyncInit = function(){
 		FB.getLoginStatus(function(response) {
-			if (response.status === 'connected' && window.location.hash!="logout")
+			if (response.status === 'connected')
 			{
-			    window.location = "/home"
+				if(window.location.hash.search("logout")<0)
+		    	{
+		    		window.location = "/home"
+		    	}
+		    	else
+		    	{
+		    		document.getElementById("fb_login_plugin").innerHTML='<fb:login-button show-faces="true"></fb:login-button>'
+		    		FB.XFBML.parse(document.getElementById("fb_login_plugin"))
+		    	}
 		  	}
 		  	else if (response.status === 'not_authorized')
 		  	{
