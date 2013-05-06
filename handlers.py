@@ -109,7 +109,7 @@ class AuthUserHandler(BaseRequestHandler):
         self.write(self.get_current_user())
 
 
-@url(r'/')
+@url(r'/home')
 class HomeHandler(BaseRequestHandler):
     @authenticated
     @asynchronous
@@ -118,7 +118,13 @@ class HomeHandler(BaseRequestHandler):
         token = self.xsrf_token
         user = self.get_current_user()
         yield motor.Op(self.db.users.update, {"fbid": user['id']}, {"$set": {"last_login": datetime.datetime.now()}})
-        self.render('index.html', user=user, facebook_app_id=self.settings.get('facebook_app_id'), avoid_websockets=self.settings.get('avoid_websockets'))
+        self.render('home.html', user=user, facebook_app_id=self.settings.get('facebook_app_id'), avoid_websockets=self.settings.get('avoid_websockets'))
+
+
+@url(r'/')
+class IndexHandler(BaseRequestHandler):
+    def get(self):
+        self.render('index.html', facebook_app_id=self.settings.get('facebook_app_id'))
 
 
 @url(r'/write/(.*)')
