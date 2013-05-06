@@ -85,7 +85,7 @@ class AuthLoginHandler(BaseRequestHandler, FacebookGraphMixin):
                                 client_id=self.settings["facebook_app_id"],
                                 extra_params={"scope": ""})
 
-    @gen.engine
+    @gen.coroutine
     def _on_auth(self, user):
         if not user:
             raise HTTPError(500, "Facebook auth failed")
