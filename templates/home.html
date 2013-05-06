@@ -6,7 +6,7 @@
     <title>Testimonial</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
-    <meta name="author" content="Rajat Khandelwal">
+    <meta name="author" content="">
 
     <!-- Le styles -->
     <link href="{{static_url('bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
@@ -24,22 +24,23 @@
       <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{{static_url('bootstrap/ico/apple-touch-icon-72-precomposed.png')}}">
                     <link rel="apple-touch-icon-precomposed" href="{{static_url('bootstrap/ico/apple-touch-icon-57-precomposed.png')}}">
                                    <link rel="shortcut icon" href="{{static_url('bootstrap/ico/favicon.png')}}">
+    <!-- Style overrides: -->
     <style type="text/css">
-    body {
-      padding-top: 60px;
-      padding-bottom: 40px;
-    }
-    .img-profile{
-      width:30px;
-      height:30px;
-    }
-    .profile-name{
-      display: inline-block;
-      padding-left: 1px;
-    }
-    .friend_row{
-      cursor:pointer;
-    }
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+      .img-profile{
+        width:30px;
+        height:30px;
+      }
+      .profile-name{
+        display: inline-block !important;
+        padding-left: 1px !important;
+      }
+      .friend_row{
+        cursor:pointer;
+      }
     </style>
 
   </head>
@@ -83,8 +84,13 @@
                 <img class="img-rounded img-profile inline" src="{{user['picture']['data']['url']}}" />
                 <a href="#" class="dropdown-toggle profile-name" data-toggle="dropdown">{{user['name']}} <b class="caret"></b></a>
                 <ul class="dropdown-menu">
+                  <li><a href="#">Action</a></li>
+                  <li><a href="#">Another action</a></li>
+                  <li><a href="#">Something else here</a></li>
                   <li class="divider"></li>
-                  <li><a href="/auth/logout">Logout</a></li>
+                  <li class="nav-header">Nav header</li>
+                  <li><a href="#">Separated link</a></li>
+                  <li><a href="#">One more separated link</a></li>
                 </ul>
               </li>
             </ul>
@@ -157,7 +163,7 @@
               var mainWidget = registry.byId("mainWidget_div");
               if(mainWidget)
                 mainWidget.setupWebsocket();
-               else
+              else
                 setTimeout(setupWebsocket, 100);
             }
           setupWebsocket();
