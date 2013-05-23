@@ -106,14 +106,17 @@ define([
                         },
                         save: function(args){
                             var self = this;
-                            self.savedValue = self.editor.get('value');
-                            var content = {content: self.savedValue, _xsrf: self.getCookie('_xsrf')};
-                            xhr.post({
-                                url: "/write/" + self.friend_id,
-                                content:content,
-                                load: lang.hitch(self, "save_xhr_success"),
-                                error: lang.hitch(self, "save_xhr_error")
-                            });
+                            if(!self.saved)
+                            {
+                                self.savedValue = self.editor.get('value');
+                                var content = {content: self.savedValue, _xsrf: self.getCookie('_xsrf')};
+                                xhr.post({
+                                    url: "/write/" + self.friend_id,
+                                    content:content,
+                                    load: lang.hitch(self, "save_xhr_success"),
+                                    error: lang.hitch(self, "save_xhr_error")
+                                });
+                            }
                         },
                         save_xhr_success: function(data, ioArgs){
                             var self = this;
