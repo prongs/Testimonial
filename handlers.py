@@ -149,6 +149,8 @@ class WriteTestimonialHandler(BaseRequestHandler, FacebookGraphMixin):
             delta = datetime.datetime.now() - last_login
             if delta.days < 1:
                 whether_to_fb_notify = False
+        else:  # never authorized the app
+            whether_to_fb_notify = False
         last_fb_notified = f_u.get('last_fb_notified', None)
         if last_fb_notified:
             delta = datetime.datetime.now() - last_fb_notified

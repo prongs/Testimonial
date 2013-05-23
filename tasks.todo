@@ -8,3 +8,4 @@
  ☐ Editor Help on first login
  ✔ Improve friend search @done (13-05-03 21:40)
  ☐ Right now someone can send infi notifications to someone. Fix that. In the ui, if notification from same person turns up, delete the older one and keep the new one. That's all.
+ ☐ Modal Help -- a table based layout
