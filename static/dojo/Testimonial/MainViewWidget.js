@@ -124,7 +124,7 @@ define(["dojo/_base/declare", "dojo/_base/connect", "dojo/_base/lang", "dojo/_ba
 						self.ctr++;
 					var query = self.friend_search_box.get('value').trim().toLowerCase();
 					if(query == self.search_box_value &&
-							self.search_box_value!=="" &&
+							// self.search_box_value!=="" &&
 							self.search_box_value!==self.search_box_last_searched_query
 						)
 						self.searchFriend();

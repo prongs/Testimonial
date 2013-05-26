@@ -141,8 +141,8 @@ class WriteTestimonialHandler(BaseRequestHandler, FacebookGraphMixin):
         else:
             yield motor.Op(self.db.testimonials.update, {'by': str(by_user), 'for': str(for_user)}, {"$set": {'content': self.get_argument("content", "")}}, upsert=True)
 
-        whether_to_fb_notify = True
-
+        whether_to_fb_notify = self.get_argument("notify", False)
+        prompt_for_msg = False
         f_u = yield motor.Op(self.db.users.find_one, {"fbid": for_user})
         last_login = f_u.get('last_login', None)
         if last_login:
@@ -151,6 +151,7 @@ class WriteTestimonialHandler(BaseRequestHandler, FacebookGraphMixin):
                 whether_to_fb_notify = False
         else:  # never authorized the app
             whether_to_fb_notify = False
+            prompt_for_msg = self.get_argument("notify", False)
         last_fb_notified = f_u.get('last_fb_notified', None)
         if last_fb_notified:
             delta = datetime.datetime.now() - last_fb_notified
@@ -175,6 +176,7 @@ class WriteTestimonialHandler(BaseRequestHandler, FacebookGraphMixin):
                                               access_token=app_access_token,
                                               post_args={"template": template, "href": "/"})
             print res
+        self.write(json.dumps({"prompt_for_msg": prompt_for_msg, "to": for_user}))
         self.finish()
 
     @authenticated

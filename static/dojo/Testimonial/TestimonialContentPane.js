@@ -120,6 +120,20 @@ define([
                         },
                         save_xhr_success: function(data, ioArgs){
                             var self = this;
+                            data = JSON.parse(data);
+                            if (data.prompt_for_msg)
+                            {
+                                obj = {
+                                    to: data.to,
+                                    method: 'send',
+                                    description: "Join a website where you can write testimonials for friends and read their testimonials for you!",
+                                    name: 'Testimonial',
+                                    picture: location.protocol+"//"+location.host+"/favicon.ico",
+                                    link: location.protocol+"//"+location.host
+                                };
+                                console.log(obj);
+                                FB.ui(obj);
+                            }
                             self.saved = true;
                             self.set('title', self.friend_name);
                             setTimeout(function(){self.checkSavedStatus();}, 1);

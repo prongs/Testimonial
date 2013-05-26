@@ -183,6 +183,8 @@
                 else
                 {
                   console.log("Response.data does not exist");
+                  alert("Error fetching friends data from facebook. Press OK to refresh the page");
+                  window.location.reload();
                 }
               });
             }
