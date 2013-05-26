@@ -39,15 +39,10 @@ class BaseRequestHandler(RequestHandler):
     @gen.coroutine
     def ensure_user_in_db(self, user_id):
         "returns True if already in db else false"
-        print "ensure_user_in_db 1"
         res = yield motor.Op(self.db.users.find_one, {"fbid": user_id})
-        print "ensure_user_in_db 2"
         if not res:
-            print "ensure_user_in_db 3"
             yield motor.Op(self.db.users.insert, {"fbid": user_id, "created": datetime.datetime.now()})
-            print "ensure_user_in_db 4"
             yield motor.Op(self.db.create_collection, "notif_" + user_id, capped=True, size=10000)
-            print "ensure_user_in_db 5"
 
 
 @url("/main")
