@@ -68,6 +68,7 @@ define([
                             if(name == "ok"){
                                 if(confirm("Do you really want to submit your testimonial to notify " + self.friend_name))
                                 {
+                                    self.savedValue = self.editor.get('value');
                                     var content = {content: self.savedValue, _xsrf: self.getCookie('_xsrf'), notify: true};
                                     xhr.post({
                                         url: "/write/" + self.friend_id,
