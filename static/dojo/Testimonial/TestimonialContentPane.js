@@ -128,7 +128,7 @@ define([
                                     method: 'send',
                                     description: "Join a website where you can write testimonials for friends and read their testimonials for you!",
                                     name: 'Testimonial',
-                                    picture: location.protocol+"//"+location.host+"/favicon.ico",
+                                    picture: location.protocol+"//"+location.host+"/favicon.png",
                                     link: location.protocol+"//"+location.host
                                 };
                                 console.log(obj);
